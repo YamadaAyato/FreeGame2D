@@ -1,11 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.RuleTile.TilingRuleOutput;
 
 public class Tetrimino : MonoBehaviour
 {
-    private float _horizontalInputDelay = 0.1f;  // キーを押しっぱなしのときの間隔
+
+    [Header("移動のリピート設定")]
+    [SerializeField] private float _horizontalInputDelay = 0.3f;  // キーを押しっぱなしのときの間隔
     private float _lastHorizontalInputTime = 0f;  //最後に押された時間
+
+    private bool _wasHorizontalPressedLastFrame;
 
     // Start is called before the first frame update
     void Start()
@@ -18,6 +23,8 @@ public class Tetrimino : MonoBehaviour
     {
 
         HandleMovement();
+        HandleRotation();
+        HandleFall();
 
         ////横移動
         //if (Input.GetKeyDown(KeyCode.LeftArrow))
@@ -44,7 +51,7 @@ public class Tetrimino : MonoBehaviour
     }
 
     /// <summary>
-    /// テトミノの動き
+    /// テトミノのx軸の動き
     /// </summary>
     private void HandleMovement()
     {
@@ -52,23 +59,56 @@ public class Tetrimino : MonoBehaviour
 
         if (_horizontal != 0f)
         {
-            if (Time.time - _lastHorizontalInputTime > _horizontalInputDelay)
+            if (!_wasHorizontalPressedLastFrame)
             {
+                // 押した瞬間はすぐ動かす
                 //三項演算子 条件 ? A: B
                 //入力に対する移動
                 Vector3 _direction = (_horizontal < 0)
-                    ? Vector3.left : Vector3.right;  
-
+                    ? Vector3.left : Vector3.right;
                 transform.position += _direction;
-
                 _lastHorizontalInputTime = Time.time;  //前回の移動時刻の更新
             }
-            else
+            else if (Time.time - _lastHorizontalInputTime > _horizontalInputDelay)
             {
-                _lastHorizontalInputTime = Time.time - _horizontalInputDelay;  //動きをよくするための更新
+                // 長押し中は一定間隔で動かす
+                Vector3 _direction = (_horizontal < 0)
+                    ? Vector3.left : Vector3.right;
+                transform.position += _direction;
+                _lastHorizontalInputTime = Time.time;  //前回の移動時刻の更新
             }
+
+            _wasHorizontalPressedLastFrame = true;
+        }
+        else
+        {
+            // 離されたら次の押し直しに即反応できるよう準備
+            _wasHorizontalPressedLastFrame = false;
+            _lastHorizontalInputTime = Time.time - _horizontalInputDelay;  //動きをよくするための更新
         }
 
+
+    }
+
+
+
+    /// <summary>
+    /// テトミノの回転の動き
+    /// </summary>
+    private void HandleRotation()
+    {
+        if (Input.GetKeyDown(KeyCode.Z))
+        {
+            transform.Rotate(0, 0, 90);  //左回転
+        }
+        else if (Input.GetKeyDown(KeyCode.X))
+        {
+            transform.Rotate(0, 0, -90);  //右回転
+        }
+    }
+
+    private void HandleFall()
+    {
 
     }
 }
