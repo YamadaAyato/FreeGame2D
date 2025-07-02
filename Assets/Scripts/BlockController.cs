@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using static UnityEngine.RuleTile.TilingRuleOutput;
 
-public class Tetrimino : MonoBehaviour
+public class BlockController : MonoBehaviour
 {
+    [Header("落下設定")]
+    [SerializeField] private float _fallTime = 1.0f;  //落下の速さ(一マス落下の感覚)
+    [SerializeField] private float _scaleFactor = 10f;  //落下の倍率
+    private float _previousTime;
 
     [Header("移動のリピート設定")]
     [SerializeField] private float _horizontalInputDelay = 0.3f;  // キーを押しっぱなしのときの間隔
@@ -25,28 +29,6 @@ public class Tetrimino : MonoBehaviour
         HandleMovement();
         HandleRotation();
         HandleFall();
-
-        ////横移動
-        //if (Input.GetKeyDown(KeyCode.LeftArrow))
-        //{
-        //    transform.position += Vector3.left;  //(-1,0)座標を移動
-        //}
-        //else if (Input.GetKeyDown(KeyCode.RightArrow))
-        //{
-        //    transform.position += Vector3.right;  //(1,0)座標を移動
-        //}
-
-        ////回転の動き
-        //if (Input.GetKeyDown(KeyCode.Z))
-        //{
-        //    transform.Rotate(0, 0, 90);  //左回転
-        //}
-        //else if (Input.GetKeyDown(KeyCode.X))
-        //{
-        //    transform.Rotate(0, 0, -90);  //右回転
-        //}
-
-        //transform.position = Vector3.down;
 
     }
 
@@ -84,10 +66,9 @@ public class Tetrimino : MonoBehaviour
         {
             // 離されたら次の押し直しに即反応できるよう準備
             _wasHorizontalPressedLastFrame = false;
-            _lastHorizontalInputTime = Time.time - _horizontalInputDelay;  //動きをよくするための更新
+            //動きをよくするための更新
+            _lastHorizontalInputTime = Time.time - _horizontalInputDelay;
         }
-
-
     }
 
 
@@ -109,6 +90,13 @@ public class Tetrimino : MonoBehaviour
 
     private void HandleFall()
     {
+        float _interval = Input.GetKey(KeyCode.DownArrow)
+            ? _fallTime / _scaleFactor : _fallTime;
 
+        if (Time.time - _previousTime > _interval)
+        {
+            transform.position += Vector3.down;
+            _previousTime = Time.time;
+        }
     }
 }
